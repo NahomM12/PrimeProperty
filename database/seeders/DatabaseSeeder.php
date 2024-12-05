@@ -33,10 +33,12 @@ class DatabaseSeeder extends Seeder
         ]);
         $this->call([
             UserAndAdminSeeder::class,
+            AddressModelSeeder::class,
             PropertyTypeSeeder::class,
             PropertySeeder::class,
             CustomerSeeder::class,
             PropertyDetailSeeder::class,
+            
         ]);
     }
 }

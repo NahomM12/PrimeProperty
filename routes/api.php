@@ -11,6 +11,9 @@ use App\Http\Controllers\Api\PropertyDetailController;
 use App\Http\Controllers\Api\ViewingRequestController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\ManagerController;
+use App\Http\Controllers\Api\RegionController;
+use App\Http\Controllers\Api\SubRegionsController;
+use App\Http\Controllers\Api\LocationController;
 
 
 Route::get('/user', function (Request $request) {
@@ -61,13 +64,16 @@ Route::middleware('auth:sanctum')->group(function () {
     
       // Property Types
 Route::apiResource('property-types', PropertyTypeController::class);
-
 // Property Fields
 Route::apiResource('property-fields', PropertyFieldController::class);
-
 // Properties
 Route::apiResource('properties', PropertyController::class);
-
+//addrress moddel region
+Route::apiResource('regions', RegionController::class);
+//subregion
+Route::apiResource('subregions', SubRegionController::class);
+//locations
+Route::apiResource('locations', LocationController::class);
 
 // Property Details
 Route::apiResource('property-details', PropertyDetailController::class);
