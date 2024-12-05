@@ -14,7 +14,23 @@ class AdminController extends Controller
 {
     public function createManager(Request $request)
     {
-        
+        $request->validate([
+            'name' => 'required|string',
+            'email' => 'required|email|unique:managers',
+            'phone' => 'required|string',
+           // 'address' => 'required|string',
+            //'status' => 'required|string|in:active,inactive',
+        ]);
+
+        $manager = Manager::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'phone' => $request->phone,
+           // 'address' => $request->address,
+            //'status' => $request->status,
+        ]);
+
+        return response()->json(['message' => 'Manager created successfully', 'manager' => $manager], 201);
     }
     public function adminLogin(Request $request)
     {

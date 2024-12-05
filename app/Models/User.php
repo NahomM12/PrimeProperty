@@ -19,9 +19,10 @@ class User extends Authenticatable
         'phone',
         'address',
         'sellertab',
-        'wishlist',
+        //'wishlist',
         'preference',
-        'language',
+        'language', //eng
+        'mode', // seller or customer default customer update migration
     ];
 
     protected $hidden = [
@@ -40,14 +41,6 @@ class User extends Authenticatable
         'sellertab' => false,
         'preference' => 'light',
     ];
-
-    public function owner()
-    {
-        return $this->hasOne(Owner::class);
-    }
-
-    public function sellerRequest()
-    {
-        return $this->hasOne(SellerRequest::class);
-    }
+//create relationship
+    
 }

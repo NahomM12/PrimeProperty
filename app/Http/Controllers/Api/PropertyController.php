@@ -132,7 +132,7 @@ class PropertyController extends Controller
         $property = Property::findOrFail($id);
         
         // delete the image from storage if needed
-         Storage::disk('public')->delete($property->images);
+        // Storage::disk('public')->delete($property->images);
         
         // Delete the property record from the database
         $property->delete();

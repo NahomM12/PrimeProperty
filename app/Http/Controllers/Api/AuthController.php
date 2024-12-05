@@ -31,6 +31,11 @@ class AuthController extends Controller
             'role' => 'customer',
             'phone' => $request->phone,
             'address' => $request->address,
+            'sellertab'=> 'inactive',
+            'wishlist' => 'property',//add property id to it 
+            'preference' => 'light',
+            'language' => 'Eng',
+            'mode' =>'customer',
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -38,6 +43,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
+            'user' => $user,
         ]);
     }
 
@@ -61,11 +67,12 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => [
+          /*  'user' => [
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
-            ]
+            ]*/
+            'user' => $user,
         ]);
     }
     

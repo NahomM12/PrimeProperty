@@ -16,6 +16,7 @@ class Property extends Model
         'price',
         'images',
         'status',
+        'owner', // owner id
         'propertyUse', // sale or rent 
         'property_type_id', 
         'latitude', 

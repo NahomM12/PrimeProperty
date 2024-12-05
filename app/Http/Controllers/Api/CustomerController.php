@@ -17,8 +17,8 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        $customers = Customer::all();
-        return response()->json($customers);
+        $users = User::all();
+        return response()->json($users);
     }
 
     /**
@@ -45,9 +45,9 @@ class CustomerController extends Controller
      * @param  \App\Models\Customer  $customer
      * @return \Illuminate\Http\Response
      */
-    public function show(Customer $customer)
+    public function show(User $user)
     {
-        return response()->json($customer);
+        return response()->json($users);
     }
 
     /**
@@ -57,16 +57,34 @@ class CustomerController extends Controller
      * @param  \App\Models\Customer  $customer
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Customer $customer)
+    public function update(Request $request,$id)
     {
+        $user = User::findOrFail($id);
         $request->validate([
-            'user_id' => 'required|integer',
-            'phone' => 'required|string',
-            'address' => 'required|string',
+           'name' => 'required|string',
+           'email' => 'required|string',
+           'phone' => 'required|string',
+            //'address' => 'required|string',
         ]);
-
-        $customer->update($request->all());
-        return response()->json($customer);
+        
+       // $this->editingCustomerI = $id;
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->phone = $request->phone;
+       // $customer->update($request->all());
+        /*
+          public function edit($id)
+    {
+        $customer = Customer::findOrFail($id);
+        $this->editingCustomerId = $id;
+        $this->name = $customer->name;
+        $this->email = $customer->email;
+        $this->phone = $customer->phone;
+    }
+        */ 
+       // $user->update($request->validated());
+       $user->save();
+        return response()->json($user);
     }
 
     /**
@@ -75,9 +93,10 @@ class CustomerController extends Controller
      * @param  \App\Models\Customer  $customer
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Customer $customer)
+    public function destroy($id)
     {
-        $customer->delete();
+        $user = User::findOrFail($id);
+        $user->delete();
         return response()->json(null, 204);
     }
     public function buyProperty(Request $request, $propertyId)

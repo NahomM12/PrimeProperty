@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\PropertyController;
 use App\Http\Controllers\Api\PropertyDetailController;
 use App\Http\Controllers\Api\ViewingRequestController;
 use App\Http\Controllers\Api\TransactionController;
+use App\Http\Controllers\Api\ManagerController;
 
 
 Route::get('/user', function (Request $request) {
@@ -25,7 +26,7 @@ Route::post('/properties/{propertyId}/buy', [CustomerController::class, 'buyProp
 Route::post('/properties/{propertyId}/rent', [CustomerController::class, 'rentProperty']);
 
 Route::apiResource('transactions', TransactionController::class);
-
+Route::apiResource('managers', ManagerController::class);
 
 Route::prefix('viewing-requests')->group(function () {
     Route::post('/', [ViewingRequestController::class, 'requestViewing']);
