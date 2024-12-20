@@ -12,14 +12,16 @@ use App\Http\Controllers\Api\ViewingRequestController;
 use App\Http\Controllers\Api\TransactionController;
 use App\Http\Controllers\Api\ManagerController;
 use App\Http\Controllers\Api\RegionController;
-use App\Http\Controllers\Api\SubRegionsController;
+use App\Http\Controllers\Api\SubRegionController;
 use App\Http\Controllers\Api\LocationController;
 
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
-
+Route::get('/properties/{use}', [PropertyController::class, 'getPropertiesByUse']);
+Route::put('/change-language', [AuthController::class, 'changeLanguage']);
+Route::put('/change-mode', [AuthController::class, 'changeMode']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/adminlogin', [AdminController::class, 'adminLogin']);
@@ -66,6 +68,8 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::apiResource('property-types', PropertyTypeController::class);
 // Property Fields
 Route::apiResource('property-fields', PropertyFieldController::class);
+//getProperties
+Route::get('/get-properties', [PropertyController::class, 'getProperties']);
 // Properties
 Route::apiResource('properties', PropertyController::class);
 //addrress moddel region
@@ -78,6 +82,7 @@ Route::apiResource('locations', LocationController::class);
 // Property Details
 Route::apiResource('property-details', PropertyDetailController::class);
 
+
 // Optional: Add a route to get fields by property type
 Route::get('property-types/{id}/form-fields', [PropertyTypeController::class, 'getFormFields']);
 
@@ -88,9 +93,10 @@ Route::get('properties/search', [PropertyController::class, 'search']);
         Route::post('/request-seller', [AuthController::class, 'requestSeller']);
         Route::post('/update-preference', [AuthController::class, 'updatePreference']);
         Route::post('/update-wishlist', [AuthController::class, 'updateWishlist']);
+        Route::put('/update-wishlist', [AuthController::class, 'updateWishlist']);
     });
-    
-
+    Route::put('/update-wishlist', [AuthController::class, 'updateWishlist']);
+    Route::get('/get-wishlist', [AuthController::class, 'getWishlist']);
 
     Route::apiResource('properties', PropertyController::class);
     Route::apiResource('property-types', PropertyTypeController::class);

@@ -18,8 +18,8 @@ class User extends Authenticatable
         'role',
         'phone',
         'address',
-        'sellertab',
-        //'wishlist',
+        'seller_tab',
+        'wishlist',
         'preference',
         'language', //eng
         'mode', // seller or customer default customer update migration
@@ -34,13 +34,17 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
         'wishlist' => 'array',
-        'sellertab' => 'boolean',
+        //'sellertab' => '',
     ];
     protected $attributes = [
         'role' => 'customer',
-        'sellertab' => false,
+        'seller_tab' => 'inactive',
         'preference' => 'light',
     ];
 //create relationship
-    
+public function properties()
+{
+    return $this->hasMany(Property::class);
+}
+
 }

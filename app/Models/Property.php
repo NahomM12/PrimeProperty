@@ -8,16 +8,14 @@ class Property extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
+        'title',
         'description',
         'address',
-        'bedrooms',
-        'bathrooms',
         'price',
         'images',
         'status',
         'owner', // owner id
-        'propertyUse', // sale or rent 
+        'property_use', // sale or rent 
         'property_type_id', 
         'latitude', 
         'longitude',
@@ -32,5 +30,9 @@ class Property extends Model
     public function propertyType()
     {
         return $this->belongsTo(PropertyType::class);
+    }
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }

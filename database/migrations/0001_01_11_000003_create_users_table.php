@@ -21,10 +21,11 @@ return new class extends Migration
             $table->string('role')->default('customer');
             $table->string('phone')->nullable();
             $table->text('address')->nullable();
-            $table->boolean('sellertab')->default(false);
+            $table->string('seller_tab')->default('inactive');
             $table->json('wishlist')->nullable();
             $table->enum('preference', ['light', 'dark'])->default('light');
-            $table->string('language')->default('en');
+            $table->enum('language', ['Eng', 'Amh'])->default('Eng');
+            $table->enum('mode', ['customer', 'seller'])->default('customer');
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
             $table->timestamps();

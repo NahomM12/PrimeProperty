@@ -18,8 +18,5 @@ class Manager extends Model
         'status',// active ,inactive
     ];
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+    
 }

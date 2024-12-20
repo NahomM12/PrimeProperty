@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Property;
+use App\Models\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePropertyRequest;
 use App\Http\Resources\PropertyResource;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PropertyController extends Controller
 {
@@ -30,7 +32,9 @@ class PropertyController extends Controller
         if ($request->has('address')) {
             $query->where('address', 'like', '%' . $request->address . '%');
         }
-
+        if ($request->has('property_use')) {
+            $query->where('property_use', $request->property_use);
+        }
         $properties = $query->get();
         return PropertyResource::collection($properties);
     }
@@ -66,7 +70,18 @@ class PropertyController extends Controller
             return response()->json(['message' => 'Error creating property'], 500);
         }
     }
-
+    public function getPropertiesByUse($use)
+    {
+        Log::debug($use);
+        try {
+            $properties = Property::where('property_use', $use)->get();
+            Log::debug($properties);
+            return response()->json($properties);
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage());
+        }
+    }
+    
     public function show($id)
     {
         $property = Property::with('propertyType')->findOrFail($id);
@@ -125,7 +140,16 @@ class PropertyController extends Controller
             return response()->json(['message' => 'Error updating property'], 500);
         }
     }
-
+  public function getProperties()
+    {
+        $userId = 1;
+        $user = User::findOrFail($userId);
+        //$properties = $user->properties()->get();
+        $properties = Property::where('owner', $userId)->get();
+       // return PropertyResource::collection($properties);
+        return response()->json($properties);
+    }
+    //user-> 
     public function destroy($id)
     {
         // Find the property by ID
@@ -140,4 +164,5 @@ class PropertyController extends Controller
         // Return a 204 No Content response
         return response()->json(null, 204);
     }
+
 }

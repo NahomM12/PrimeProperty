@@ -10,15 +10,14 @@ return new class extends Migration
     {
         Schema::create('properties', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('title');
             $table->text('description');
             $table->string('address');
-            $table->integer('bedrooms');
-            $table->integer('bathrooms');
             $table->decimal('price', 12, 2);
             $table->json('images');
-            $table->enum('status', ['available', 'sold', 'rented'])->default('available');
-            $table->enum('propertyUse', ['sale', 'rent']);
+            $table->enum('status', ['available', 'sold', 'rented', 'unavailable'])->default('unavailable');
+            $table->enum('property_use', ['sale', 'rent']);
+            $table->foreignId('owner')->constrained('users');
             $table->foreignId('property_type_id')->constrained('property_types');
             $table->decimal('latitude', 10, 8)->nullable();
             $table->decimal('longitude', 11, 8)->nullable();
