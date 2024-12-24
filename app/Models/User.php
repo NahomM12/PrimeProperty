@@ -46,5 +46,24 @@ public function properties()
 {
     return $this->hasMany(Property::class);
 }
+public function isAdmin()
+{
+    return $this->admin()->exists();
+}
+
+public function isManager()
+{
+    return $this->manager()->exists() && $this->manager->status === 'active';
+}
+
+public function isSeller()
+{
+    return $this->mode === 'seller' && $this->seller_tab === 'active';
+}
+
+public function isCustomer()
+{
+    return $this->mode === 'customer';
+}
 
 }

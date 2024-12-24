@@ -8,13 +8,18 @@ use Symfony\Component\HttpFoundation\Response;
 
 class SellerMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
     public function handle(Request $request, Closure $next): Response
     {
+        if (!auth()->check()) {
+            return response()->json(['message' => 'Unauthenticated'], 401);
+        }
+
+        $user = auth()->user();
+        
+        if ($user->mode !== 'seller' || $user->seller_tab !== 'active') {
+            return response()->json(['message' => 'Unauthorized. Active seller access required.'], 403);
+        }
+
         return $next($request);
     }
 }

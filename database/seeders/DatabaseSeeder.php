@@ -35,7 +35,7 @@ class DatabaseSeeder extends Seeder
             UserAndAdminSeeder::class,
             PropertyTypeSeeder::class,
             PropertySeeder::class,
-            CustomerSeeder::class,
+           
             PropertyDetailSeeder::class,
             
         ]);

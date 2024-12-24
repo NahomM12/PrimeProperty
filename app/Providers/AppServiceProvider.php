@@ -32,7 +32,13 @@ class AppServiceProvider extends ServiceProvider
     {
         // Alias middleware
         Route::aliasMiddleware('role', CheckRole::class);
-
+        
+            // ... other middleware
+            Route::aliasMiddleware('admin', AdminMiddleware::class);
+            Route::aliasMiddleware('manager' ,ManagerMiddleware::class);
+            Route::aliasMiddleware('seller', SellerMiddleware::class);
+            Route::aliasMiddleware('customer' , CustomerMiddleware::class);
+        
        
 
         // Configure CORS

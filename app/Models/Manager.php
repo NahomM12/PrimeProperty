@@ -18,5 +18,19 @@ class Manager extends Model
         'status',// active ,inactive
     ];
 
-    
+    public function region()
+    {
+        return $this->belongsTo(Region::class);
+    }
+
+    public function subRegion()
+    {
+        return $this->belongsTo(SubRegion::class);
+    }
+
+    public function properties()
+    {
+        return $this->hasMany(Property::class, 'region_id', 'region_id')
+                    ->where('sub_region_id', $this->sub_region_id);
+    }
 }

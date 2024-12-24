@@ -1,18 +1,20 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use CloudinaryLabs\CloudinaryLaravel\MediaAlly;
+
 class Property extends Model
 {
-    use HasFactory;
+    use HasFactory, MediaAlly;
 
     protected $fillable = [
         'title',
         'description',
         'address',
         'price',
-        'images',
         'status',
         'owner', // owner id
         'property_use', // sale or rent 
@@ -23,7 +25,6 @@ class Property extends Model
     ];
 
     protected $casts = [
-        'images' => 'array',
         'field_values' => 'array'
     ];
 
@@ -31,6 +32,7 @@ class Property extends Model
     {
         return $this->belongsTo(PropertyType::class);
     }
+
     public function user()
     {
         return $this->belongsTo(User::class);

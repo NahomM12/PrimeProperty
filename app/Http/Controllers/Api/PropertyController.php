@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePropertyRequest;
 use App\Http\Resources\PropertyResource;
 use Illuminate\Http\Request;
+use Cloudinary\Cloudinary;
+use Cloudinary\Transformation\Transformation;
 use Illuminate\Support\Facades\Log;
 
 class PropertyController extends Controller
@@ -38,44 +40,69 @@ class PropertyController extends Controller
         $properties = $query->get();
         return PropertyResource::collection($properties);
     }
+    public function getPropertiesForRent(Request $request)
+{
+    $query = Property::with('propertyType') 
+                     ->where('property_use', 'rent')
+                     ->where('status', 'available');
+
+    $properties = $query->get();
+
+    $response = [];
+    foreach ($properties as $property) {
+        $response[] = [
+            'title' => $property->title,
+            'owner' => $property->owner,
+            'date' => $property->created_at->format('Y-m-d'),
+            'price' => $property->price,
+        ];
+    }
+
+    return response()->json($response);
+}
 
     public function store(StorePropertyRequest $request)
-    {
-        $validatedData = $request->validated();
-        
-        // Handle multiple image uploads
-        if ($request->hasFile('images')) {
-            $images = [];
-            foreach ($request->file('images') as $image) {
-                $imagePath = $image->store('images', 'public');
-                $images[] = $imagePath;
-            }
-            $validatedData['images'] = $images;
-        }
+{
+    $validatedData = $request->validated();
 
-        // Add field_values if present
-        if (isset($validatedData['field_values'])) {
-            $validatedData['field_values'] = json_decode($validatedData['field_values'], true);
-        }
-
-        DB::beginTransaction();
-
-        try {
-            $property = Property::create($validatedData);
-            DB::commit();
-            
-            return new PropertyResource($property->load('propertyType'));
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['message' => 'Error creating property'], 500);
-        }
+    // Add field_values if present
+    if (isset($validatedData['field_values'])) {
+        $validatedData['field_values'] = json_decode($validatedData['field_values'], true);
     }
+
+    DB::beginTransaction();
+
+    try {
+        // Create the property record
+        $property = Property::create($validatedData);
+
+        // Handle multiple image uploads using MediaAlly
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                // Upload the image to Cloudinary and specify the folder
+                $uploadedFileUrl = cloudinary()->upload($image->getRealPath(), [
+                    'folder' => 'properties image', // Specify the folder name
+                ])->getSecurePath();
+
+                // Attach the uploaded media to the property model
+                $property->attachMedia($uploadedFileUrl);
+            }
+        }
+
+        DB::commit();
+        
+        return new PropertyResource($property->load('propertyType'));
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json(['message' => 'Error creating property'], 500);
+    }
+}
+
     public function getPropertiesByUse($use)
     {
         Log::debug($use);
         try {
             $properties = Property::where('property_use', $use)->get();
-            Log::debug($properties);
             return response()->json($properties);
         } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
@@ -155,10 +182,6 @@ class PropertyController extends Controller
         // Find the property by ID
         $property = Property::findOrFail($id);
         
-        // delete the image from storage if needed
-        // Storage::disk('public')->delete($property->images);
-        
-        // Delete the property record from the database
         $property->delete();
         
         // Return a 204 No Content response

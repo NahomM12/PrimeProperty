@@ -9,15 +9,20 @@ return new class extends Migration
     {
         Schema::create('managers', function (Blueprint $table) {
             $table->id();
-           // $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('name')->default('a');
             $table->string('email')->nullable();
             $table->string('phone');
             $table->text('address')->nullable();
-            $table->string('status')->default('active'); // default status is active
+            $table->string('status')->default('active');
+            $table->unsignedBigInteger('region_id');
+            $table->unsignedBigInteger('sub_region_id');
             $table->timestamps();
+    
+            $table->foreign('region_id')->references('id')->on('regions')->onDelete('cascade');
+            $table->foreign('sub_region_id')->references('id')->on('sub_regions')->onDelete('cascade');
         });
     }
+    
 
     public function down()
     {

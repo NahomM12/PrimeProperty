@@ -3,40 +3,40 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Manager;
+use App\Models\Property;
+use App\Models\Region;
+use App\Models\SubRegion;
 use Illuminate\Http\Request;
 
 class ManagerController extends Controller
 {
     public function index()
     {
-        $managers = Manager::all();
+        $managers = Manager::with('region', 'subRegion', 'properties')->get();
         return response()->json(['managers' => $managers]);
     }
 
     public function store(Request $request)
     {
         $request->validate([
-           // 'name' => 'required|string',
-           // 'email' => 'required|email|unique:managers',
+            'name' => 'required|string',
+            'email' => 'required|email|unique:managers',
             'phone' => 'required|string',
-           // 'address' => 'required|string',
-            //'status' => 'required|string|in:active,inactive',
+            'region_id' => 'required|exists:regions,id',
+            'sub_region_id' => 'required|exists:sub_regions,id',
         ]);
 
         $manager = Manager::create([
-           // 'name' => $request->name,
-           // 'email' => $request->email,
+            'name' => $request->name,
+            'email' => $request->email,
             'phone' => $request->phone,
-            //'address' => $request->address,
-            //'status' => $request->status,
+            'region_id' => $request->region_id,
+            'sub_region_id' => $request->sub_region_id,
         ]);
-
-        return response()->json(['message' => 'Manager created successfully', 'manager' => $manager], 201);
     }
-
     public function show($id)
     {
-        $manager = Manager::find($id);
+        $manager = Manager::with('region', 'subRegion', 'properties')->find($id);
         if (!$manager) {
             return response()->json(['message' => 'Manager not found'], 404);
         }

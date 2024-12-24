@@ -20,6 +20,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 Route::get('/properties/{use}', [PropertyController::class, 'getPropertiesByUse']);
+Route::get('/properties-for-rent', [PropertyController::class, 'getPropertiesForRent']);
 Route::put('/change-language', [AuthController::class, 'changeLanguage']);
 Route::put('/change-mode', [AuthController::class, 'changeMode']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -58,10 +59,17 @@ Route::middleware('auth:sanctum')->group(function () {
          // Your API routes go here
          
      });
-     Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
+     Route::middleware( 'role:admin')->group(function () {
         Route::post('/admin/approve-seller/{id}', [AdminController::class, 'approveSellerRequest']);
         Route::post('/admin/reject-seller/{id}', [AdminController::class, 'rejectSellerRequest']);
         Route::get('/admin/seller-requests', [AdminController::class, 'listSellerRequests']);
+        //regions
+        Route::apiResource('regions', RegionController::class);
+         //subregion
+          Route::apiResource('subregions', SubRegionController::class);
+          //locations
+        Route::apiResource('locations', LocationController::class);
+
     });
     
       // Property Types
