@@ -14,13 +14,13 @@ use App\Http\Controllers\Api\ManagerController;
 use App\Http\Controllers\Api\RegionController;
 use App\Http\Controllers\Api\SubRegionController;
 use App\Http\Controllers\Api\LocationController;
-
-
+                                                                                            
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 Route::get('/properties/{use}', [PropertyController::class, 'getPropertiesByUse']);
 Route::get('/properties-for-rent', [PropertyController::class, 'getPropertiesForRent']);
+Route::get('/property/{id}', [PropertyController::class, 'ShowProperty']);
 Route::put('/change-language', [AuthController::class, 'changeLanguage']);
 Route::put('/change-mode', [AuthController::class, 'changeMode']);
 Route::post('/register', [AuthController::class, 'register']);
@@ -31,7 +31,10 @@ Route::post('/manager/login', [AuthController::class, 'managerLogin']);
 Route::post('/properties/{propertyId}/buy', [CustomerController::class, 'buyProperty']);
 Route::post('/properties/{propertyId}/rent', [CustomerController::class, 'rentProperty']);
 
+
+Route::get('get-transactions', [TransactionController::class,'getTransactions']);
 Route::apiResource('transactions', TransactionController::class);
+
 Route::apiResource('managers', ManagerController::class);
 
 Route::prefix('viewing-requests')->group(function () {
@@ -80,7 +83,7 @@ Route::apiResource('property-fields', PropertyFieldController::class);
 Route::get('/get-properties', [PropertyController::class, 'getProperties']);
 // Properties
 Route::apiResource('properties', PropertyController::class);
-//addrress moddel region
+//addrress model region
 Route::apiResource('regions', RegionController::class);
 //subregion
 Route::apiResource('subregions', SubRegionController::class);
@@ -89,6 +92,15 @@ Route::apiResource('locations', LocationController::class);
 
 // Property Details
 Route::apiResource('property-details', PropertyDetailController::class);
+
+Route::get('/get-propertiesbyregion', [PropertyController::class, 'GetPropertiesbyRegion']);
+//count views
+//Route::get('/count-views/{id}', [PropertyController::class, 'countViews']);
+Route::get('/properties/{id}/views', [PropertyController::class, 'countViews']);
+
+Route::get('managers/transactions/sale', [TransactionController::class, 'getSaleTransactionsByManager']);
+Route::get('managers/transactions/rent', [TransactionController::class, 'getRentTransactionsByManager']);
+
 
 
 // Optional: Add a route to get fields by property type
@@ -105,7 +117,12 @@ Route::get('properties/search', [PropertyController::class, 'search']);
     });
     Route::put('/update-wishlist', [AuthController::class, 'updateWishlist']);
     Route::get('/get-wishlist', [AuthController::class, 'getWishlist']);
-
+  // Route::get('/properties/{id}', [PropertyController::class, 'show']);
     Route::apiResource('properties', PropertyController::class);
     Route::apiResource('property-types', PropertyTypeController::class);
+    //get statistics
+         Route::get('/statistics/properties', [AdminController::class, 'getTotalProperties']);
+         Route::get('/statistics/users', [AdminController::class, 'getTotalUsers']);
+         Route::get('/statistics/revenue', [AdminController::class, 'getTotalRevenue']);
+
  });

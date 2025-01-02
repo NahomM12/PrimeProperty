@@ -12,7 +12,7 @@ class PropertyTypeSeeder extends Seeder
     {
         $propertyTypes = [
             [
-                'name' => 'Apartment',
+                'name' => 'Apartments',
                 'fields' => [
                     ['field_name' => 'bedrooms', 'field_type' => 'number'],
                     ['field_name' => 'bathrooms', 'field_type' => 'number'],
@@ -22,7 +22,7 @@ class PropertyTypeSeeder extends Seeder
                 ]
             ],
             [
-                'name' => 'House',
+                'name' => 'Houses',
                 'fields' => [
                     ['field_name' => 'bedrooms', 'field_type' => 'number'],
                     ['field_name' => 'bathrooms', 'field_type' => 'number'],
@@ -32,7 +32,7 @@ class PropertyTypeSeeder extends Seeder
                 ]
             ],
             [
-                'name' => 'Commercial',
+                'name' => 'Commercials',
                 'fields' => [
                     ['field_name' => 'total_floors', 'field_type' => 'number'],
                     ['field_name' => 'office_count', 'field_type' => 'number'],
@@ -42,7 +42,7 @@ class PropertyTypeSeeder extends Seeder
                 ]
             ],
             [
-                'name' => 'Land',
+                'name' => 'Lands',
                 'fields' => [
                     ['field_name' => 'total_area', 'field_type' => 'number'],
                     ['field_name' => 'zoning_type', 'field_type' => 'select'],

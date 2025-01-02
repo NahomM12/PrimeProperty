@@ -12,7 +12,6 @@ return new class extends Migration
     {
         Schema::create('locations', function (Blueprint $table) {
             $table->id();
-           // $table->foreignId('region_id')->constrained()->onDelete('cascade');
             $table->foreignId('subregion_id')->constrained('sub_regions')->onDelete('cascade');
             $table->string('location');
             $table->timestamps();

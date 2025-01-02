@@ -14,7 +14,8 @@ class Manager extends Model
         'name',
         'email',
         'phone',
-        'address',
+        'region_id',
+        'sub_region_id',
         'status',// active ,inactive
     ];
 

@@ -16,25 +16,54 @@ class Property extends Model
         'address',
         'price',
         'status',
-        'owner', // owner id
-        'property_use', // sale or rent 
-        'property_type_id', 
-        'latitude', 
+        'owner',
+        'property_use',
+        'property_type_id',
+        'latitude',
         'longitude',
+        'images',
         'field_values',
+        'is_featured',
+        'region_id',
+        'subregion_id',
+        'location_id',
+        'bedrooms',
+        'bathrooms'
     ];
 
     protected $casts = [
+        'is_featured' => 'boolean',
+        'images' => 'array',
         'field_values' => 'array'
     ];
 
+    // Relationships
     public function propertyType()
     {
         return $this->belongsTo(PropertyType::class);
     }
 
-    public function user()
+    public function region()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Region::class);
+    }
+
+    public function subregion()
+    {
+        return $this->belongsTo(SubRegion::class);
+    }
+
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
+    }
+
+    public function views()
+    {
+        return $this->hasMany(PropertyView::class);
+    }
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
     }
 }

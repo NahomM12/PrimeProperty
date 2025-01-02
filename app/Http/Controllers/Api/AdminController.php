@@ -12,6 +12,33 @@ use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
+    /*
+{
+    public function dashboard()
+    {
+        return response()->json([
+            'totalProperties' => Property::count(),
+            'totalUsers' => User::count(),
+            'totalRevenue' => Transaction::where('transaction_type', 'sale')->sum('price') + Transaction::where('transaction_type', 'rent')->sum('price'),
+        ]);
+    }
+}
+    */
+    public function getTotalProperties()
+    {
+        return response()->json(['totalProperties' => Property::count()]);
+    }
+
+    public function getTotalUsers()
+    {
+        return response()->json(['totalUsers' => User::count()]);
+    }
+
+    public function getTotalRevenue()
+    {
+        $totalRevenue = Transaction::where('transaction_type', 'sale')->sum('price') + Transaction::where('transaction_type', 'rent')->sum('price');
+        return response()->json(['totalRevenue' => $totalRevenue]);
+    }
     public function createManager(Request $request)
     {
         $request->validate([

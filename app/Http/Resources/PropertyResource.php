@@ -16,16 +16,34 @@ class PropertyResource extends JsonResource
             'bedrooms' => $this->bedrooms,
             'bathrooms' => $this->bathrooms,
             'price' => $this->price,
-            'images' => collect($this->images)->map(function($image) {
-                return url('storage/' . $image);
-            }),
+            'images' => $this->images,
             'status' => $this->status,
-            'propertyUse' => $this->propertyUse,
+            'property_use' => $this->property_use,
             'property_type_id' => $this->property_type_id,
-            'property_type' => new PropertyTypeResource($this->whenLoaded('propertyType')),
+            'property_type' => $this->whenLoaded('propertyType'),
+            'region' => $this->whenLoaded('region', function () {
+                return [
+                    'id' => $this->region->id,
+                    'name' => $this->region->region_name,
+                ];
+            }),
+            'subregion' => $this->whenLoaded('subregion', function () {
+                return [
+                    'id' => $this->subregion->id,
+                    'name' => $this->subregion->subregion_name,
+                ];
+            }),
+            'location' => $this->whenLoaded('location', function () {
+                return [
+                    'id' => $this->location->id,
+                    'name' => $this->location->location,
+                ];
+            }),
             'field_values' => $this->field_values,
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
+            'is_featured' => $this->is_featured,
+            'views_count' => $this->views()->count(),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -82,7 +82,18 @@ class AuthController extends Controller
         ]); 
     }
     
-
+    public function verifySeller(Request $request)
+    {
+        try {
+            $user = auth()->user();
+            $user->seller_tab = 'active';
+            $user->save();
+            return response()->json($user);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+    
     public function managerLogin(Request $request)
     {
         $request->validate([

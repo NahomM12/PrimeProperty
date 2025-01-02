@@ -33,6 +33,8 @@ class ManagerController extends Controller
             'region_id' => $request->region_id,
             'sub_region_id' => $request->sub_region_id,
         ]);
+
+        return response()->json(['message' => 'Manager created successfully', 'manager' => $manager], 201);
     }
     public function show($id)
     {

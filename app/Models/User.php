@@ -41,10 +41,10 @@ class User extends Authenticatable
         'seller_tab' => 'inactive',
         'preference' => 'light',
     ];
-//create relationship
+ //create relationship
 public function properties()
 {
-    return $this->hasMany(Property::class);
+    return $this->hasMany(Property::class, 'property_views');
 }
 public function isAdmin()
 {
@@ -65,5 +65,9 @@ public function isCustomer()
 {
     return $this->mode === 'customer';
 }
-
+public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
 }
+

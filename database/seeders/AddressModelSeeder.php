@@ -1,3 +1,4 @@
+<?php
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -11,9 +12,9 @@ class AddressModelSeeder extends Seeder
     {
         // Seed Regions
         $regions = [
-            ['region_name' => 'North America'],
-            ['region_name' => 'Europe'],
-            ['region_name' => 'Asia'],
+            ['region_name' => 'addis ababa'],
+            ['region_name' => 'Dire Dawa'],
+            ['region_name' => 'Hawassa'],
         ];
 
         foreach ($regions as $regionData) {
@@ -34,13 +35,13 @@ class AddressModelSeeder extends Seeder
 
                 // Seed Locations for each SubRegion
                 $locations = [
-                    ['location' => 'New York', 'region_id' => $region->id, 'subregion_id' => $subRegion->id],
-                    ['location' => 'Los Angeles', 'region_id' => $region->id, 'subregion_id' => $subRegion->id],
-                    ['location' => 'Toronto', 'region_id' => $region->id, 'subregion_id' => $subRegion->id],
-                    ['location' => 'Berlin', 'region_id' => $region->id, 'subregion_id' => $subRegion->id],
-                    ['location' => 'Paris', 'region_id' => $region->id, 'subregion_id' => $subRegion->id],
-                    ['location' => 'Beijing', 'region_id' => $region->id, 'subregion_id' => $subRegion->id],
-                    ['location' => 'Tokyo', 'region_id' => $region->id, 'subregion_id' => $subRegion->id],
+                    ['location' => 'New York',  'subregion_id' => $subRegion->id],
+                    ['location' => 'Los Angeles',  'subregion_id' => $subRegion->id],
+                    ['location' => 'Toronto',  'subregion_id' => $subRegion->id],
+                    ['location' => 'Berlin', 'subregion_id' => $subRegion->id],
+                    ['location' => 'Paris',  'subregion_id' => $subRegion->id],
+                    ['location' => 'Beijing',  'subregion_id' => $subRegion->id],
+                    ['location' => 'Tokyo',  'subregion_id' => $subRegion->id],
                 ];
 
                 foreach ($locations as $locationData) {

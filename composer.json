@@ -23,6 +23,7 @@
     "require": {
     "php": "^8.2",
     "cloudinary-labs/cloudinary-laravel": "^2.2",
+    "darkaonline/l5-swagger": "*",
     "laravel/framework": "^11.9",
     "laravel/sanctum": "^4.0",
     "laravel/tinker": "^2.9"

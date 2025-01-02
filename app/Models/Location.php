@@ -10,20 +10,16 @@ class Location extends Model
     use HasFactory;
 
     protected $fillable = [
-        'region_id', 
         'subregion_id', 
         'location',
     ];
 
-    
-
-    public function region()
-    {
-        return $this->belongsTo(Region::class);
-    }
-
     public function subregion()
     {
         return $this->belongsTo(SubRegion::class);
+    }
+    public function properties()
+    {
+        return $this->hasMany(Property::class);
     }
 }

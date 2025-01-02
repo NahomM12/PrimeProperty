@@ -19,5 +19,8 @@ class SubRegion extends Model
     {
         return $this->belongsTo(Region::class);
     }
-
+    public function properties()
+    {
+        return $this->hasMany(Property::class);
+    }
 }

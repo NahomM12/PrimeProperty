@@ -10,7 +10,8 @@ class Transaction extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',// add another id for buyer/renter
+        'owner',
+        'customer',
         'property_id',
         'transaction_type', // sale or rent
         'transaction_date',
@@ -35,5 +36,16 @@ class Transaction extends Model
     {
         return $this->belongsTo(User::class);
     }
+    
+    public function customer()
+    {
+        return $this->belongsTo(User::class, 'customer');
+    }
+
+    public function owner()
+    {
+        return $this->belongsTo(User::class, 'owner'); 
+    }
+
 
 }

@@ -7,8 +7,13 @@ use App\Models\User;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePropertyRequest;
 use App\Http\Resources\PropertyResource;
+use App\Models\PropertyView;
+use App\Models\PropertyType;
+use App\Models\Manager;
+use App\Models\Region;
 use Illuminate\Http\Request;
 use Cloudinary\Cloudinary;
+use Illuminate\Support\Facades\DB;
 use Cloudinary\Transformation\Transformation;
 use Illuminate\Support\Facades\Log;
 
@@ -16,31 +21,66 @@ class PropertyController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Property::with('propertyType');
-
+        $query = Property::with('propertyType', 'subregion.region', 'location');
+    
         // Apply filters
         if ($request->has('property_type_id')) {
             $query->where('property_type_id', $request->property_type_id);
         }
-
+    
         if ($request->has('min_price')) {
             $query->where('price', '>=', $request->min_price);
         }
-
+    
         if ($request->has('max_price')) {
             $query->where('price', '<=', $request->max_price);
         }
-
+    
         if ($request->has('address')) {
             $query->where('address', 'like', '%' . $request->address . '%');
         }
+    
         if ($request->has('property_use')) {
             $query->where('property_use', $request->property_use);
         }
+    
+        if ($request->has('region_id')) {
+            $query->whereHas('region', function ($q) use ($request) {
+                $q->where('id', $request->region_id);
+            });
+        }
+    
+        if ($request->has('subregion_id')) {
+            $query->whereHas('subregion', function ($q) use ($request) {
+                $q->where('id', $request->subregion_id);
+            });
+        }
+    
+        if ($request->has('location_id')) {
+            $query->whereHas('location', function ($q) use ($request) {
+                $q->where('id', $request->location_id);
+            });
+        }
+    
         $properties = $query->get();
         return PropertyResource::collection($properties);
     }
-    public function getPropertiesForRent(Request $request)
+    public function GetPropertiesbyRegion()
+    {
+        $manager_id = 2;
+        Log::debug('passed');
+        
+        // Find the manager by ID
+        $manager = Manager::findOrFail($manager_id);
+        Log::debug($manager);
+        
+        // Get properties that have the same region_id as the manager
+        $properties = Property::where('subregion_id', $manager->sub_region_id)->get();
+        
+        return response()->json($properties);
+    }
+    
+        public function getPropertiesForRent(Request $request)
 {
     $query = Property::with('propertyType') 
                      ->where('property_use', 'rent')
@@ -61,40 +101,97 @@ class PropertyController extends Controller
     return response()->json($response);
 }
 
-    public function store(StorePropertyRequest $request)
+public function store(Request $request)
 {
-    $validatedData = $request->validated();
-
-    // Add field_values if present
-    if (isset($validatedData['field_values'])) {
-        $validatedData['field_values'] = json_decode($validatedData['field_values'], true);
-    }
+    Log::debug('First log: Request received', $request->all());
 
     DB::beginTransaction();
 
     try {
-        // Create the property record
-        $property = Property::create($validatedData);
+        // Validate the request
+        $validatedData = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'address' => 'required|string|max:255',
+            'bedrooms' => 'nullable|integer|min:0',
+            'bathrooms' => 'nullable|integer|min:0',
+            'price' => 'required|numeric|min:0',
+            'images' => 'required|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'status' => 'required|string|in:available,sold,rented',
+            'property_use' => 'required|string|in:rent,sale',
+            'property_type_id' => 'required|exists:property_types,id',
+            'field_values' => 'array|nullable|sometimes',
+            'latitude' => 'nullable|numeric',
+            'longitude' => 'nullable|numeric',
+            'owner' => 'required|exists:users,id',
+            'region_id' => 'required|exists:regions,id',
+            'subregion_id' => 'required|exists:sub_regions,id',
+            'location' => 'nullable|string|max:255', // Accept location string input
+        ]);
 
-        // Handle multiple image uploads using MediaAlly
+        // Handle dynamic location creation
+        if ($request->filled('location')) {
+            $location = Location::firstOrCreate([
+                'location' => $request->location,
+                'subregion_id' => $request->subregion_id,
+            ]);
+
+            // Assign the location_id to the validated data
+            $validatedData['location_id'] = $location->id;
+        } else {
+            // Ensure location_id is required if no string location is provided
+            $request->validate([
+                'location_id' => 'required|exists:locations,id',
+            ]);
+            $validatedData['location_id'] = $request->location_id;
+        }
+
+        // Create the property
+        $property = Property::create($validatedData);
+        Log::debug('Second log: Property created', ['property_id' => $property->id]);
+
+        // Handle image uploads if any
         if ($request->hasFile('images')) {
+            Log::debug('Image upload process started');
+
+            $uploadedImageUrls = [];
+
             foreach ($request->file('images') as $image) {
-                // Upload the image to Cloudinary and specify the folder
                 $uploadedFileUrl = cloudinary()->upload($image->getRealPath(), [
-                    'folder' => 'properties image', // Specify the folder name
+                    'folder' => 'properties_images',
+                    'transformation' => [
+                        'width' => 400,
+                        'height' => 400,
+                        'crop' => 'fill',
+                    ],
                 ])->getSecurePath();
 
-                // Attach the uploaded media to the property model
-                $property->attachMedia($uploadedFileUrl);
+                $uploadedImageUrls[] = $uploadedFileUrl;
+                Log::debug('Image uploaded and attached to property', ['url' => $uploadedFileUrl]);
             }
+
+            $property->images = $uploadedImageUrls;
         }
 
         DB::commit();
-        
-        return new PropertyResource($property->load('propertyType'));
+
+        return response()->json([
+            'message' => 'Property created successfully',
+            'data' => new PropertyResource($property->load('propertyType', 'region', 'subregion', 'location')),
+        ], 201);
     } catch (\Exception $e) {
         DB::rollBack();
-        return response()->json(['message' => 'Error creating property'], 500);
+
+        Log::error('Error creating property', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+
+        return response()->json([
+            'message' => 'Error creating property',
+            'error' => $e->getMessage(),
+        ], 500);
     }
 }
 
@@ -109,11 +206,97 @@ class PropertyController extends Controller
         }
     }
     
-    public function show($id)
-    {
-        $property = Property::with('propertyType')->findOrFail($id);
-        return new PropertyResource($property);
+  /*  public function show($id)
+{
+    $property = Property::with('propertyType')->findOrFail($id);
+
+    // Check if the current user has already viewed the property
+    $hasViewed = $property->views()->where('user_id', auth()->id())->exists();
+
+    if (!$hasViewed) {
+        // Create a new property view record
+        $property->views()->create([
+            'user_id' => auth()->id(),
+        ]);
     }
+
+    return new PropertyResource($property);
+}*/
+public function show($id)
+{
+    try {
+        $property = Property::with([
+            'propertyType',
+            'region',
+            'subregion',
+            'location'
+        ])->findOrFail($id);
+
+        Log::debug('Property found:', ['property' => $property]);
+
+        // Manual user ID approach
+        $userId = 1; // Static user ID as in your example
+        $hasViewed = $property->views()->where('user_id', $userId)->exists();
+        
+        if (!$hasViewed) {
+            $property->views()->create([
+                'user_id' => $userId,
+            ]);
+        }
+
+        return new PropertyResource($property);
+
+    } catch (\Exception $e) {
+        Log::error('Error fetching property:', [
+            'id' => $id,
+            'error' => $e->getMessage()
+        ]);
+
+        return response()->json([
+            'message' => 'Property not found',
+            'error' => $e->getMessage()
+        ], 404);
+    }
+}
+
+public function ShowProperty($id) 
+{
+    try {
+        $property = Property::with([
+            'propertyType',
+            'region',
+            'subregion',
+            'location'
+        ])->findOrFail($id);
+
+        Log::debug('Property found:', ['property' => $property]);
+
+        // Manual user ID approach
+        $userId = 2; // Static user ID as in your example
+        $hasViewed = $property->views()->where('user_id', $userId)->exists();
+        
+        if (!$hasViewed) {
+            $property->views()->create([
+                'user_id' => $userId,
+            ]);
+        }
+
+        return new PropertyResource($property);
+
+    } catch (\Exception $e) {
+        Log::error('Error fetching property:', [
+            'id' => $id,
+            'error' => $e->getMessage()
+        ]);
+
+        return response()->json([
+            'message' => 'Property not found',
+            'error' => $e->getMessage()
+        ], 404);
+    }
+}
+
+
     
     public function update(Request $request, $id)
     {
@@ -177,6 +360,17 @@ class PropertyController extends Controller
         return response()->json($properties);
     }
     //user-> 
+    public function countViews($id)
+{
+    $property = Property::findOrFail($id);
+    $uniqueViews = $property->views()->distinct('user_id')->count();
+
+    return response()->json([
+        'property_id' => $property->id,
+        'unique_views' => $uniqueViews,
+    ]);
+}
+
     public function destroy($id)
     {
         // Find the property by ID
