@@ -21,8 +21,8 @@ class User extends Authenticatable
         'seller_tab',
         'wishlist',
         'preference',
-        'language', //eng
-        'mode', // seller or customer default customer update migration
+        'language', 
+        'mode', 
     ];
 
     protected $hidden = [

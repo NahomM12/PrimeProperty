@@ -17,9 +17,10 @@ class TransactionController extends Controller
 {
     public function index()
     {
-        $transactions = Transaction::with(['property', 'customer', 'owner'])->latest()->paginate(10);
+        $transactions = Transaction::with(['property'])->latest()->paginate(10);
         return TransactionResource::collection($transactions);
     }
+    
 
     public function store(Request $request)
     {
@@ -128,7 +129,7 @@ class TransactionController extends Controller
         public function getSaleTransactionsByManager()
         {
             try {
-                $manager_id = 2;
+                $manager_id = 3;
                 $manager = Manager::findOrFail($manager_id);
                     Log::debug('first');
                 // Get properties in manager's region first

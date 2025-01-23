@@ -13,6 +13,7 @@ class Admin extends Model
         'user_id',
         'name',
         'email',
+        'role',
         'password',
         
     ];

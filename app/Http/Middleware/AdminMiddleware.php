@@ -15,8 +15,8 @@ class AdminMiddleware
         }
 
         $user = auth()->user();
-        
-        if (!$user->admin) {
+
+        if ($user->role !== 'admin') { // Check if the role is 'admin'
             return response()->json(['message' => 'Unauthorized. Admin access required.'], 403);
         }
 

@@ -13,7 +13,6 @@ class Property extends Model
     protected $fillable = [
         'title',
         'description',
-        'address',
         'price',
         'status',
         'owner',
@@ -27,8 +26,9 @@ class Property extends Model
         'region_id',
         'subregion_id',
         'location_id',
-        'bedrooms',
-        'bathrooms'
+        'views_count',
+        'bookmarks_count',
+        'response',
     ];
 
     protected $casts = [

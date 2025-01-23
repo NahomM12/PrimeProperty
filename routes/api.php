@@ -22,7 +22,8 @@ Route::get('/properties/{use}', [PropertyController::class, 'getPropertiesByUse'
 Route::get('/properties-for-rent', [PropertyController::class, 'getPropertiesForRent']);
 Route::get('/property/{id}', [PropertyController::class, 'ShowProperty']);
 Route::put('/change-language', [AuthController::class, 'changeLanguage']);
-Route::put('/change-mode', [AuthController::class, 'changeMode']);
+Route::put('/change-language', [AuthController::class, 'changeLanguage']);
+Route::get('/profile', [AuthController::class, 'profile']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/adminlogin', [AdminController::class, 'adminLogin']);
@@ -101,7 +102,16 @@ Route::get('/properties/{id}/views', [PropertyController::class, 'countViews']);
 Route::get('managers/transactions/sale', [TransactionController::class, 'getSaleTransactionsByManager']);
 Route::get('managers/transactions/rent', [TransactionController::class, 'getRentTransactionsByManager']);
 
+Route::get('/user/property-stats', [PropertyController::class, 'getUserPropertyStats']);
+// routes/api.php
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user/property-stats', [YourController::class, 'getUserPropertyStats'])->name('user.property-stats');
+    Route::post('/properties/{id}/bookmark', [YourController::class, 'bookmark'])->name('properties.bookmark');
+    Route::get('/properties/{id}/views', [YourController::class, 'countViews'])->name('properties.views');
+});
+
+Route::get('/properties/manager', [PropertyController::class, 'getPropertiesByManagerRegion']);
 
 // Optional: Add a route to get fields by property type
 Route::get('property-types/{id}/form-fields', [PropertyTypeController::class, 'getFormFields']);

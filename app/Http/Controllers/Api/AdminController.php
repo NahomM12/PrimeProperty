@@ -8,22 +8,16 @@ use App\Models\Owner;
 use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
-    /*
-{
-    public function dashboard()
+    public function __construct()
     {
-        return response()->json([
-            'totalProperties' => Property::count(),
-            'totalUsers' => User::count(),
-            'totalRevenue' => Transaction::where('transaction_type', 'sale')->sum('price') + Transaction::where('transaction_type', 'rent')->sum('price'),
-        ]);
+        // Apply middleware for authentication and admin role checking
+        $this->middleware('auth:sanctum'); 
     }
-}
-    */
+
     public function getTotalProperties()
     {
         return response()->json(['totalProperties' => Property::count()]);
@@ -36,29 +30,31 @@ class AdminController extends Controller
 
     public function getTotalRevenue()
     {
-        $totalRevenue = Transaction::where('transaction_type', 'sale')->sum('price') + Transaction::where('transaction_type', 'rent')->sum('price');
+        $totalRevenue = Transaction::where('transaction_type', 'sale')->sum('price') + 
+                        Transaction::where('transaction_type', 'rent')->sum('price');
         return response()->json(['totalRevenue' => $totalRevenue]);
     }
+
     public function createManager(Request $request)
     {
         $request->validate([
             'name' => 'required|string',
-            'email' => 'required|email|unique:managers',
+            'email' => 'required|email|unique:admins', // Ensure unique email in admins table
             'phone' => 'required|string',
-           // 'address' => 'required|string',
-            //'status' => 'required|string|in:active,inactive',
+            'password' => 'required|min:6',
+            'role' => 'required|string|in:manager,admin', // Limit roles to valid options
         ]);
 
-        $manager = Manager::create([
+        $manager = Admin::create([
             'name' => $request->name,
             'email' => $request->email,
-            'phone' => $request->phone,
-           // 'address' => $request->address,
-            //'status' => $request->status,
+            'role' => $request->role,
+            'password' => Hash::make($request->password),
         ]);
 
         return response()->json(['message' => 'Manager created successfully', 'manager' => $manager], 201);
     }
+
     public function adminLogin(Request $request)
     {
         $request->validate([
@@ -66,29 +62,25 @@ class AdminController extends Controller
             'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $admin = Admin::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (!$admin || !Hash::check($request->password, $admin->password)) {
             return response()->json([
                 'message' => 'Invalid email or password',
             ], 401);
         }
 
-        $admin = Admin::where('user_id', $user->id)->first();
+        $user = User::find($admin->user_id); // Fetch the associated user model if needed
 
-        if (!$admin) {
-            return response()->json([
-                'message' => 'You are not an admin',
-            ], 403);
-        }
-
-        $token = $user->createToken('admin-token')->plainTextToken;
+        $token = $admin->createToken('admin-token')->plainTextToken;
 
         return response()->json([
             'token' => $token,
+            'admin' => $admin,
             'user' => $user,
         ]);
     }
+
     public function approveSellerRequest(Request $request, $id)
     {
         $owner = Owner::findOrFail($id);
@@ -96,7 +88,7 @@ class AdminController extends Controller
         $owner->save();
 
         $user = $owner->user;
-        $user->role = 'seller';
+        $user->role = 'seller'; // Assign seller role to the user
         $user->sellertab = true;
         $user->save();
 
@@ -105,7 +97,7 @@ class AdminController extends Controller
 
     public function rejectSellerRequest(Request $request, $id)
     {
-        $owner = Owner::findOrFail($id);
+        $owner = User::findOrFail($id);
         $owner->status = 'rejected';
         $owner->save();
 
@@ -114,7 +106,7 @@ class AdminController extends Controller
 
     public function listSellerRequests()
     {
-        $requests = Owner::where('status', 'pending')->with('user')->get();
+        $requests = User::where('status', 'pending')->with('customer')->get();
         return response()->json($requests);
     }
 }

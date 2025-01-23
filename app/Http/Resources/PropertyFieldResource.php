@@ -14,8 +14,7 @@ class PropertyFieldResource extends JsonResource
             'field_name' => $this->field_name,
             'field_type' => $this->field_type,
             'property_type' => new PropertyTypeResource($this->whenLoaded('propertyType')),
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            
         ];
     }
 }

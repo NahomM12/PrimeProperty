@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class PropertyField extends Model
 {
-    protected $fillable = ['property_type_id', 'field_name', 'field_type'];
+    protected $fillable = ['property_type_id', 'field_name', 'field_type', 'field_required'];//update migration
 
     public function propertyType()
     {

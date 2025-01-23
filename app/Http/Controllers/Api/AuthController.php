@@ -224,6 +224,14 @@ public function changeMode(Request $request)
         }
         
     }
+    public function profile(Request $request)
+    {
+        $userId = 1;
+        $user = User::find($userId);
+        return response()->json([
+            'user' => $user,
+        ]);
+    }
     public function getWishlist()
     {
         $userId =1;

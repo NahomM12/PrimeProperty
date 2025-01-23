@@ -3,23 +3,28 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Models\User;
 
 class TransactionResource extends JsonResource
 {
     public function toArray($request)
     {
+        // Get the seller and buyer user objects
+        $seller = User::find($this->owner);
+        $buyer = User::find($this->customer);
+
         return [
             'id' => $this->id,
-            'seller' => [
-                'id' => $this->owner->id,
-                'name' => $this->owner->user->name,
-                'phone' => $this->owner->phone,
-            ],
-            'buyer' => $this->when($this->customer, [
-                'id' => $this->customer->id,
-                'name' => $this->customer->user->name,
-                'phone' => $this->customer->phone,
-            ]),
+            'seller' => $seller ? [
+                'id' => $seller->id,
+                'name' => $seller->name,
+                 'phone' => $seller->phone,
+            ] : null,
+            'buyer' => $buyer ? [
+                'id' => $buyer->id,
+                'name' => $buyer->name,
+                 'phone' => $buyer->phone,
+            ] : null,
             'property' => new PropertyResource($this->whenLoaded('property')),
             'transaction_type' => $this->transaction_type,
             'transaction_date' => $this->transaction_date,

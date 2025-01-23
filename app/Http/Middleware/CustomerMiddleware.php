@@ -16,7 +16,7 @@ class CustomerMiddleware
 
         $user = auth()->user();
         
-        if ($user->mode !== 'customer') {
+        if ($user->role !== 'customer') {
             return response()->json(['message' => 'Unauthorized. Customer access required.'], 403);
         }
 

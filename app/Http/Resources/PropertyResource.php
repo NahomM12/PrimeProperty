@@ -21,24 +21,18 @@ class PropertyResource extends JsonResource
             'property_use' => $this->property_use,
             'property_type_id' => $this->property_type_id,
             'property_type' => $this->whenLoaded('propertyType'),
-            'region' => $this->whenLoaded('region', function () {
-                return [
-                    'id' => $this->region->id,
-                    'name' => $this->region->region_name,
-                ];
-            }),
-            'subregion' => $this->whenLoaded('subregion', function () {
-                return [
-                    'id' => $this->subregion->id,
-                    'name' => $this->subregion->subregion_name,
-                ];
-            }),
-            'location' => $this->whenLoaded('location', function () {
-                return [
-                    'id' => $this->location->id,
-                    'name' => $this->location->location,
-                ];
-            }),
+            'region' => [
+                'id' => $this->region->id,
+                'name' => $this->region->region_name,
+            ],
+            'subregion' => [
+                'id' => $this->subregion->id,
+                'name' => $this->subregion->subregion_name,
+            ],
+            'location' => [
+                'id' => $this->location->id,
+                'name' => $this->location->location,
+            ],
             'field_values' => $this->field_values,
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,

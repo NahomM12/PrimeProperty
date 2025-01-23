@@ -112,40 +112,24 @@ public function store(Request $request)
         $validatedData = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'address' => 'required|string|max:255',
-            'bedrooms' => 'nullable|integer|min:0',
-            'bathrooms' => 'nullable|integer|min:0',
+            'address' => 'sometimes|string|max:255',
+            
             'price' => 'required|numeric|min:0',
-            'images' => 'required|array',
+            'images' => 'sometimes|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-            'status' => 'required|string|in:available,sold,rented',
+            'status' => 'sometimes|string|in:available,sold,rented',
             'property_use' => 'required|string|in:rent,sale',
-            'property_type_id' => 'required|exists:property_types,id',
+            'property_type_id' => 'sometimes|exists:property_types,id',
             'field_values' => 'array|nullable|sometimes',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
-            'owner' => 'required|exists:users,id',
-            'region_id' => 'required|exists:regions,id',
-            'subregion_id' => 'required|exists:sub_regions,id',
-            'location' => 'nullable|string|max:255', // Accept location string input
+            'owner' => 'nullable|exists:users,id',
+            'region_id' => 'sometimes|exists:regions,id',
+            'subregion_id' => 'sometimes|exists:sub_regions,id',
+            'location_id' => 'sometimes|exists:locations,id', // Accept location string input
         ]);
 
-        // Handle dynamic location creation
-        if ($request->filled('location')) {
-            $location = Location::firstOrCreate([
-                'location' => $request->location,
-                'subregion_id' => $request->subregion_id,
-            ]);
-
-            // Assign the location_id to the validated data
-            $validatedData['location_id'] = $location->id;
-        } else {
-            // Ensure location_id is required if no string location is provided
-            $request->validate([
-                'location_id' => 'required|exists:locations,id',
-            ]);
-            $validatedData['location_id'] = $request->location_id;
-        }
+       
 
         // Create the property
         $property = Property::create($validatedData);
@@ -178,7 +162,7 @@ public function store(Request $request)
 
         return response()->json([
             'message' => 'Property created successfully',
-            'data' => new PropertyResource($property->load('propertyType', 'region', 'subregion', 'location')),
+            'data' => new PropertyResource($property->load('propertyType', 'region', 'subregion')),
         ], 201);
     } catch (\Exception $e) {
         DB::rollBack();
@@ -360,7 +344,7 @@ public function ShowProperty($id)
         return response()->json($properties);
     }
     //user-> 
-    public function countViews($id)
+    /*public function countViews($id)
 {
     $property = Property::findOrFail($id);
     $uniqueViews = $property->views()->distinct('user_id')->count();
@@ -369,6 +353,63 @@ public function ShowProperty($id)
         'property_id' => $property->id,
         'unique_views' => $uniqueViews,
     ]);
+}*/
+public function countViews($id)
+{
+    $property = Property::findOrFail($id);
+    $property->increment('views_count');
+
+    return response()->json([
+        'property_id' => $property->id,
+        'unique_views' => $property->views_count,
+    ]);
+}
+
+public function bookmark(Request $request, $id)
+{
+    $user = auth()->user();
+    $property = Property::findOrFail($id);
+
+    if ($user->wishlist->contains($id)) {
+        $user->wishlist->pull($id);
+        $property->decrement('bookmarks_count');
+    } else {
+        $user->wishlist->push($id);
+        $property->increment('bookmarks_count');
+    }
+
+    $user->save();
+
+    return response()->json([
+        'bookmarked' => $user->wishlist->contains($id),
+        'total_bookmarks' => $property->bookmarks_count,
+    ]);
+}
+
+public function getUserPropertyStats(Request $request)
+{
+   // $user = auth()->user();
+   $userid = 31;
+    $user = User::findOrFail($userid);
+    $properties = $user->properties;
+
+    $data = [
+        'total_properties_listed' => $properties->count(),
+        'total_views_of_properties' => $properties->sum('views_count'),
+        'total_bookmarks_of_properties' => $properties->sum('bookmarks_count'),
+    ];
+
+    return response()->json($data);
+}
+public function getPropertiesByManagerRegion($managerId)
+{
+    $managerId = 1;
+    $manager = Manager::with('region')->findOrFail($managerId);
+
+    return Property::where('region_id', $manager->region_id)
+                    //->where('sub_region_id', $manager->sub_region_id)
+                    ->get();
+                    return response()->json($properties);
 }
 
     public function destroy($id)

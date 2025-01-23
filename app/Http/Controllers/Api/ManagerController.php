@@ -12,7 +12,7 @@ class ManagerController extends Controller
 {
     public function index()
     {
-        $managers = Manager::with('region', 'subRegion', 'properties')->get();
+        $managers = Manager::all();
         return response()->json(['managers' => $managers]);
     }
 
