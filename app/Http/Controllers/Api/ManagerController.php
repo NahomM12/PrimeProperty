@@ -7,6 +7,11 @@ use App\Models\Property;
 use App\Models\Region;
 use App\Models\SubRegion;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rules\Password;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class ManagerController extends Controller
 {
@@ -22,6 +27,7 @@ class ManagerController extends Controller
             'name' => 'required|string',
             'email' => 'required|email|unique:managers',
             'phone' => 'required|string',
+            'password'=>'required|string',
             'region_id' => 'required|exists:regions,id',
             'sub_region_id' => 'required|exists:sub_regions,id',
         ]);
@@ -30,6 +36,7 @@ class ManagerController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'phone' => $request->phone,
+           'password' => Hash::make($request->password),
             'region_id' => $request->region_id,
             'sub_region_id' => $request->sub_region_id,
         ]);

@@ -20,17 +20,15 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        // Create an admin user
-        $admin = User::create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-        ]);
+        // // Create an admin user
+        // $admin = User::create([
+        //     'name' => 'Admin',
+        //     'email' => 'admin@example.com',
+        //     'password' => Hash::make('password'),
+        //     'role' => 'admin',
+        // ]);
 
-        Admin::create([
-            'user_id' => $admin->id,
-        ]);
+      
         $this->call([
             UserAndAdminSeeder::class,
            
@@ -38,6 +36,8 @@ class DatabaseSeeder extends Seeder
           PropertySeeder::class,
            PropertyDetailSeeder::class,
             TransactionSeeder::class,
+            AdminSeeder::class,
+            ManagerSeeder::class,
            // 
         ]);
     }

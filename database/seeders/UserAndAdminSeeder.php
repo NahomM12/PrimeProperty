@@ -23,15 +23,15 @@ class UserAndAdminSeeder extends Seeder
             'password' => '111111',
         ]);
         // Create an admin user
-        $admin = User::create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-        ]);
+        // $admin = User::create([
+        //     'name' => 'Admin',
+        //     'email' => 'admin@example.com',
+        //     'password' => Hash::make('password'),
+        //     'role' => 'admin',
+        // ]);
 
-        Admin::create([
-            'user_id' => $admin->id,
-        ]);
+        // Admin::create([
+        //     'user_id' => $admin->id,
+        // ]);
     }
 }

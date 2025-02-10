@@ -14,29 +14,66 @@ use App\Http\Controllers\Api\ManagerController;
 use App\Http\Controllers\Api\RegionController;
 use App\Http\Controllers\Api\SubRegionController;
 use App\Http\Controllers\Api\LocationController;
-                                                                                            
+         
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    // Routes for both sellers and customers
+    Route::get('/get-properties', [PropertyController::class, 'getProperties']);
+    Route::apiResource('transactions', TransactionController::class);
+    Route::put('/update-wishlist', [AuthController::class, 'updateWishlist']);
+    Route::get('get-transactions', [TransactionController::class,'getTransactions']);
+    //address routes
+    Route::apiResource('regions', RegionController::class);
+    Route::apiResource('subregions', SubRegionController::class);
+    Route::apiResource('locations', LocationController::class);
+    
+    // get Properties Routes
+    Route::get('/properties/{use}', [PropertyController::class, 'getPropertiesByUse']);
+    Route::get('/properties-for-rent', [PropertyController::class, 'getPropertiesForRent']);
+    Route::get('/property/{id}', [PropertyController::class, 'ShowProperty']);
+    Route::put('/change-language', [AuthController::class, 'changeLanguage']);
+    Route::put('/change-language', [AuthController::class, 'changeLanguage']);
+    Route::apiResource('customers', CustomerController::class);
+    //buy & rent routes
+    Route::post('/properties/{propertyId}/buy', [CustomerController::class, 'buyProperty']);
+    Route::post('/properties/{propertyId}/rent', [CustomerController::class, 'rentProperty']);
+    Route::apiResource('managers', ManagerController::class);
+    Route::apiResource('property-types', PropertyTypeController::class);
+    // Property Fields
+    Route::apiResource('property-fields', PropertyFieldController::class);
+    Route::post('/request-seller', [AuthController::class, 'requestSeller']);
+    Route::post('/update-preference', [AuthController::class, 'updatePreference']);
+    Route::apiResource('properties', PropertyController::class);
+    Route::apiResource('property-details', PropertyDetailController::class);
+    Route::get('/get-propertiesbyregion', [PropertyController::class, 'GetPropertiesbyRegion']);
+
+
+});
+
+
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/rent-transactions', [TransactionController::class, 'getRentTransactionsByManager']);
+
+});
+
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
-Route::get('/properties/{use}', [PropertyController::class, 'getPropertiesByUse']);
-Route::get('/properties-for-rent', [PropertyController::class, 'getPropertiesForRent']);
-Route::get('/property/{id}', [PropertyController::class, 'ShowProperty']);
-Route::put('/change-language', [AuthController::class, 'changeLanguage']);
-Route::put('/change-language', [AuthController::class, 'changeLanguage']);
+
 Route::get('/profile', [AuthController::class, 'profile']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/adminlogin', [AdminController::class, 'adminLogin']);
-Route::apiResource('customers', CustomerController::class);
+
 Route::post('/manager/login', [AuthController::class, 'managerLogin']);
-Route::post('/properties/{propertyId}/buy', [CustomerController::class, 'buyProperty']);
-Route::post('/properties/{propertyId}/rent', [CustomerController::class, 'rentProperty']);
 
 
-Route::get('get-transactions', [TransactionController::class,'getTransactions']);
-Route::apiResource('transactions', TransactionController::class);
 
-Route::apiResource('managers', ManagerController::class);
+
+
+
+
 
 Route::prefix('viewing-requests')->group(function () {
     Route::post('/', [ViewingRequestController::class, 'requestViewing']);
@@ -45,10 +82,10 @@ Route::prefix('viewing-requests')->group(function () {
     Route::get('/pending', [ViewingRequestController::class, 'getPendingRequests']);
     Route::get('/customer/{customerId}', [ViewingRequestController::class, 'getCustomerRequests']);
 });
-
+    Route::post('/logout', [AuthController::class, 'logout']);
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/logout', [AuthController::class, 'logout']);
+   
     Route::post('/request-seller', [AuthController::class, 'requestSeller']);
 });
 
@@ -61,40 +98,19 @@ Route::middleware('auth:sanctum')->group(function () {
          SubstituteBindings::class,
      ])->group(function () {
          // Your API routes go here
-         
      });
-     Route::middleware( 'role:admin')->group(function () {
-        Route::post('/admin/approve-seller/{id}', [AdminController::class, 'approveSellerRequest']);
-        Route::post('/admin/reject-seller/{id}', [AdminController::class, 'rejectSellerRequest']);
-        Route::get('/admin/seller-requests', [AdminController::class, 'listSellerRequests']);
-        //regions
-        Route::apiResource('regions', RegionController::class);
-         //subregion
-          Route::apiResource('subregions', SubRegionController::class);
-          //locations
-        Route::apiResource('locations', LocationController::class);
-
-    });
     
-      // Property Types
-Route::apiResource('property-types', PropertyTypeController::class);
-// Property Fields
-Route::apiResource('property-fields', PropertyFieldController::class);
-//getProperties
-Route::get('/get-properties', [PropertyController::class, 'getProperties']);
+        Route::middleware('auth:sanctum')->group(function () {
+            Route::put('/verify-seller', [AuthController::class, 'verifySeller']); 
+        });
+    
 // Properties
-Route::apiResource('properties', PropertyController::class);
-//addrress model region
-Route::apiResource('regions', RegionController::class);
-//subregion
-Route::apiResource('subregions', SubRegionController::class);
-//locations
-Route::apiResource('locations', LocationController::class);
+
+
+
 
 // Property Details
-Route::apiResource('property-details', PropertyDetailController::class);
 
-Route::get('/get-propertiesbyregion', [PropertyController::class, 'GetPropertiesbyRegion']);
 //count views
 //Route::get('/count-views/{id}', [PropertyController::class, 'countViews']);
 Route::get('/properties/{id}/views', [PropertyController::class, 'countViews']);
@@ -110,6 +126,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/properties/{id}/bookmark', [YourController::class, 'bookmark'])->name('properties.bookmark');
     Route::get('/properties/{id}/views', [YourController::class, 'countViews'])->name('properties.views');
 });
+Route::middleware('auth:sanctum')->group(function () {
+   
+});
 
 Route::get('/properties/manager', [PropertyController::class, 'getPropertiesByManagerRegion']);
 
@@ -120,19 +139,18 @@ Route::get('property-types/{id}/form-fields', [PropertyTypeController::class, 'g
 Route::get('properties/search', [PropertyController::class, 'search']);
     
     Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/request-seller', [AuthController::class, 'requestSeller']);
-        Route::post('/update-preference', [AuthController::class, 'updatePreference']);
-        Route::post('/update-wishlist', [AuthController::class, 'updateWishlist']);
-        Route::put('/update-wishlist', [AuthController::class, 'updateWishlist']);
+       
+       
     });
-    Route::put('/update-wishlist', [AuthController::class, 'updateWishlist']);
+   
     Route::get('/get-wishlist', [AuthController::class, 'getWishlist']);
   // Route::get('/properties/{id}', [PropertyController::class, 'show']);
     Route::apiResource('properties', PropertyController::class);
     Route::apiResource('property-types', PropertyTypeController::class);
+    Route::get('/featured', [PropertyController::class, 'getallfeatured']);
+    
     //get statistics
          Route::get('/statistics/properties', [AdminController::class, 'getTotalProperties']);
          Route::get('/statistics/users', [AdminController::class, 'getTotalUsers']);
          Route::get('/statistics/revenue', [AdminController::class, 'getTotalRevenue']);
-
  });

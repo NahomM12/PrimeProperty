@@ -16,6 +16,7 @@ use Cloudinary\Cloudinary;
 use Illuminate\Support\Facades\DB;
 use Cloudinary\Transformation\Transformation;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class PropertyController extends Controller
 {
@@ -65,9 +66,13 @@ class PropertyController extends Controller
         $properties = $query->get();
         return PropertyResource::collection($properties);
     }
+
+
+
+    
     public function GetPropertiesbyRegion()
     {
-        $manager_id = 2;
+        $manager = auth()->user();
         Log::debug('passed');
         
         // Find the manager by ID
@@ -76,10 +81,28 @@ class PropertyController extends Controller
         
         // Get properties that have the same region_id as the manager
         $properties = Property::where('subregion_id', $manager->sub_region_id)->get();
-        
-        return response()->json($properties);
+              $rentCount = Property::where('subregion_id', $manager->sub_region_id)
+                     ->where('property_use', 'rent')
+                     ->count();
+
+            $saleCount = Property::where('subregion_id', $manager->sub_region_id)
+                       ->where('property_use', 'sale')
+                        ->count();
+
+        $data = [
+            'properties' => $properties,
+            'total_properties' => $properties->count(),
+            'total_sales' => $saleCount,
+            'total_rent' => $rentCount,
+        ];
+        return response()->json($data);
     }
     
+    public function getallfeatured(Request $request)
+    {
+        $properties = Property::where('is_featured', true)->get();
+        return PropertyResource::collection($properties);
+    }
         public function getPropertiesForRent(Request $request)
 {
     $query = Property::with('propertyType') 
@@ -113,7 +136,6 @@ public function store(Request $request)
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'address' => 'sometimes|string|max:255',
-            
             'price' => 'required|numeric|min:0',
             'images' => 'sometimes|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -218,8 +240,8 @@ public function show($id)
 
         Log::debug('Property found:', ['property' => $property]);
 
-        // Manual user ID approach
-        $userId = 1; // Static user ID as in your example
+        // Use the authenticated user ID
+        $userId = auth()->id(); // Get the authenticated user's ID
         $hasViewed = $property->views()->where('user_id', $userId)->exists();
         
         if (!$hasViewed) {
@@ -243,42 +265,43 @@ public function show($id)
     }
 }
 
-public function ShowProperty($id) 
-{
-    try {
-        $property = Property::with([
-            'propertyType',
-            'region',
-            'subregion',
-            'location'
-        ])->findOrFail($id);
 
-        Log::debug('Property found:', ['property' => $property]);
+// public function ShowProperty($id) 
+// {
+//     try {
+//         $property = Property::with([
+//             'propertyType',
+//             'region',
+//             'subregion',
+//             'location'
+//         ])->findOrFail($id);
 
-        // Manual user ID approach
-        $userId = 2; // Static user ID as in your example
-        $hasViewed = $property->views()->where('user_id', $userId)->exists();
+//         Log::debug('Property found:', ['property' => $property]);
+
+//         // Manual user ID approach
+//         $userId = 2; // Static user ID as in your example
+//         $hasViewed = $property->views()->where('user_id', $userId)->exists();
         
-        if (!$hasViewed) {
-            $property->views()->create([
-                'user_id' => $userId,
-            ]);
-        }
+//         if (!$hasViewed) {
+//             $property->views()->create([
+//                 'user_id' => $userId,
+//             ]);
+//         }
 
-        return new PropertyResource($property);
+//         return new PropertyResource($property);
 
-    } catch (\Exception $e) {
-        Log::error('Error fetching property:', [
-            'id' => $id,
-            'error' => $e->getMessage()
-        ]);
+//     } catch (\Exception $e) {
+//         Log::error('Error fetching property:', [
+//             'id' => $id,
+//             'error' => $e->getMessage()
+//         ]);
 
-        return response()->json([
-            'message' => 'Property not found',
-            'error' => $e->getMessage()
-        ], 404);
-    }
-}
+//         return response()->json([
+//             'message' => 'Property not found',
+//             'error' => $e->getMessage()
+//         ], 404);
+//     }
+// }
 
 
     
@@ -334,15 +357,31 @@ public function ShowProperty($id)
             return response()->json(['message' => 'Error updating property'], 500);
         }
     }
-  public function getProperties()
-    {
-        $userId = 1;
-        $user = User::findOrFail($userId);
-        //$properties = $user->properties()->get();
-        $properties = Property::where('owner', $userId)->get();
-       // return PropertyResource::collection($properties);
-        return response()->json($properties);
-    }
+//   public function getProperties()
+//     {
+//         $userId = 1;
+//         $user = User::findOrFail($userId);
+//         //$properties = $user->properties()->get();
+//         $properties = Property::where('owner', $userId)->get();
+//        // return PropertyResource::collection($properties);
+//         return response()->json($properties);
+//     }
+public function getProperties()
+{
+    Log::debug('Entering getProperties() method');
+
+    $user = auth()->user();
+    Log::debug('Got authenticated user: ' . $user->id);
+
+    $properties = $user->properties()->get();
+    //$properties = Property::withCount('views')->get();
+
+    Log::debug('Retrieved properties: ' . count($properties));
+
+    return response()->json($properties);
+}
+
+
     //user-> 
     /*public function countViews($id)
 {
@@ -364,6 +403,7 @@ public function countViews($id)
         'unique_views' => $property->views_count,
     ]);
 }
+
 
 public function bookmark(Request $request, $id)
 {
@@ -388,11 +428,20 @@ public function bookmark(Request $request, $id)
 
 public function getUserPropertyStats(Request $request)
 {
-   // $user = auth()->user();
-   $userid = 31;
-    $user = User::findOrFail($userid);
+    // Get the authenticated user
+    $user = auth()->user(); // Retrieves the authenticated user
+
+    // If the user is not authenticated, return an error response
+    if (!$user) {
+        return response()->json([
+            'message' => 'User not authenticated'
+        ], 401);
+    }
+
+    // Retrieve the user's properties
     $properties = $user->properties;
 
+    // Prepare the data
     $data = [
         'total_properties_listed' => $properties->count(),
         'total_views_of_properties' => $properties->sum('views_count'),
@@ -401,16 +450,20 @@ public function getUserPropertyStats(Request $request)
 
     return response()->json($data);
 }
+
 public function getPropertiesByManagerRegion($managerId)
 {
-    $managerId = 1;
+    // Fetch the manager using the managerId passed
     $manager = Manager::with('region')->findOrFail($managerId);
 
-    return Property::where('region_id', $manager->region_id)
-                    //->where('sub_region_id', $manager->sub_region_id)
-                    ->get();
-                    return response()->json($properties);
+    // Get properties that belong to the same region as the manager
+    $properties = Property::where('region_id', $manager->region_id)
+                          //->where('sub_region_id', $manager->sub_region_id) // Uncomment if you want to use sub_region_id
+                          ->get();
+
+    return response()->json($properties);
 }
+
 
     public function destroy($id)
     {

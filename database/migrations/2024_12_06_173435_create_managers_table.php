@@ -14,6 +14,8 @@ return new class extends Migration
             $table->string('phone');
             $table->text('address')->nullable();
             $table->string('status')->default('active');
+            $table->string('role')->default('manager');
+            $table->string('password');
             $table->unsignedBigInteger('region_id');
             $table->unsignedBigInteger('sub_region_id');
             $table->timestamps();

@@ -6,13 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Admin;
 use App\Models\Manager;
-use App\Models\Property;
-use App\Models\SellerRequest;
 use Illuminate\Http\Request;
+use App\Models\Property;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class AuthController extends Controller
 {
@@ -23,7 +23,7 @@ class AuthController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'password' => ['required',  Password::defaults()],
             'phone' => ['required', 'string', 'max:255'],
-            'address' => ['required', 'string'],
+            //'address' => ['required', 'string'],
         ]);
 
         $user = User::create([
@@ -32,7 +32,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             //'role' => 'customer',
             'phone' => $request->phone,
-            'address' => $request->address,
+            //'address' => $request->address,
             //'sellertab'=>,
             //  'wishlist' => 'property',//add property id to it 
             //'preference' => 'light',
@@ -51,36 +51,28 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        Log::debug($request);
         $request->validate([
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
         ]);
-    
+
         $user = User::where('email', $request->email)->first();
-    
+
         if (!$user || !Hash::check($request->password, $user->password)) {
-            Log::debug('tewolde');
-           // dd('rekik');
             return response()->json([
                 'message' => 'Invalid login details'
             ], 401);
-            
         }
-    
-        $token = $user->createToken('auth_token')->plainTextToken;
-        
+
+        $token = $user->createToken('auth_token', ['role:' . $user->role])->plainTextToken;
+
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-          /*  'user' => [
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role,
-            ]*/
             'user' => $user,
-        ]); 
+        ]);
     }
+
     
     public function verifySeller(Request $request)
     {
@@ -95,34 +87,41 @@ class AuthController extends Controller
     }
     
     public function managerLogin(Request $request)
-    {
-        $request->validate([
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
-        ]);
+{
+    Log::debug($request->all());
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json([
-                'message' => 'Invalid login details'
-            ], 401);
-        }
+    // Validate the request
+    $request->validate([
+        'email' => ['required', 'string', 'email'],
+        'password' => ['required', 'string'],
+    ]);
 
-        $user = User::where('email', $request['email'])->firstOrFail();
+    Log::debug("Validation passed");
 
-        if ($user->role !== 'manager') {
-            return response()->json([
-                'message' => 'Unauthorized access'
-            ], 403);
-        }
-
-        $token = $user->createToken('auth_token')->plainTextToken;
-
+    // Attempt to authenticate the manager using the 'manager' guard
+    if (!auth('manager')->attempt($request->only('email', 'password'))) {
+        Log::debug("Invalid login details");
         return response()->json([
-            'access_token' => $token,
-            'token_type' => 'Bearer',
-            'user' => $user,
-        ]);
+            'message' => 'Invalid login details'
+        ], 401);
     }
+
+    Log::debug("Manager authenticated");
+
+    // Retrieve the authenticated manager
+    $manager = auth('manager')->user();
+
+    // Create a token for the manager
+    $token = $manager->createToken('auth_token', ['role:manager'])->plainTextToken;
+
+    Log::debug("Token generated");
+
+    return response()->json([
+        'access_token' => $token,
+        'token_type' => 'Bearer',
+        'user' => $manager,
+    ]);
+}
 
     public function requestSeller(Request $request)
     {
@@ -195,35 +194,48 @@ public function changeMode(Request $request)
         'mode' => $user->preference,
     ]);
 }
-    public function updateWishlist(Request $request)
-    {
-        $request->validate([
-            
-            'prodId' => ['required', 'integer', 'exists:properties,id'],
-        ]);
-        $userId =1;
-        $user = User::find($userId);
-       // $user = User::find($request->userId);
-        Log::debug($user);
-        $wishlist = $user->wishlist ?? [];
 
-        if (!in_array($request->prodId, $wishlist)) {
-            $wishlist[] = $request->prodId;
-            $user->update(['wishlist' => $wishlist]);
-            return response()->json([
-                'message' => 'Wishlist updated successfully',
-                'wishlist' => $user->wishlist,
-            ]);
-        } else {
-            $wishlist = array_diff($wishlist, [$request->prodId]);
-            $user->update(['wishlist' => $wishlist]);
-            return response()->json([
-                'message' => 'Wishlist updated successfully',
-                'wishlist' => $user->wishlist,
-            ]);
-        }
-        
-    }
+
+// public function updateWishlist(Request $request)
+// {
+//     Log::debug('Entering updateWishlist method', ['request_data' => $request->all()]);
+
+//     $request->validate([
+//         'prodId' => ['required', 'integer', 'exists:properties,id'],
+//     ]);
+
+//     // Get the authenticated user
+//     $user = auth()->user();
+
+//     if (!$user) {
+//         Log::error('Unauthorized access attempt to update wishlist.');
+//         return response()->json(['message' => 'Unauthorized'], 401);
+//     }
+
+//     Log::debug('Authenticated user found', ['user_id' => $user->id]);
+
+//     // Retrieve the wishlist, ensuring it's an array
+//     $wishlist = $user->wishlist ?? [];
+//     Log::debug('Current wishlist before update', ['wishlist' => $wishlist]);
+
+//     if (!in_array($request->prodId, $wishlist)) {
+//         $wishlist[] = $request->prodId;
+//         Log::debug('Product added to wishlist', ['prodId' => $request->prodId]);
+//     } else {
+//         $wishlist = array_diff($wishlist, [$request->prodId]); // Remove the item
+//         Log::debug('Product removed from wishlist', ['prodId' => $request->prodId]);
+//     }
+
+//     // Update the user's wishlist
+//     $user->update(['wishlist' => array_values($wishlist)]);
+//     Log::debug('Wishlist updated successfully', ['new_wishlist' => $wishlist]);
+
+//     return response()->json([
+//         'message' => 'Wishlist updated successfully',
+//         'wishlist' => $user->wishlist,
+//     ]);
+// }
+
     public function profile(Request $request)
     {
         $userId = 1;

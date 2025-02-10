@@ -30,8 +30,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Alias middleware
-        Route::aliasMiddleware('role', CheckRole::class);
+         // Alias middleware
+         Route::aliasMiddleware('role', CheckRole::class);
         
             // ... other middleware
             Route::aliasMiddleware('admin', AdminMiddleware::class);
@@ -41,8 +41,8 @@ class AppServiceProvider extends ServiceProvider
         
        
 
-        // Configure CORS
-        config([
+         // Configure CORS
+         config([
             'cors' => [
                 'paths' => ['api/*', 'sanctum/csrf-cookie'],
                 'allowed_methods' => ['*'],
